@@ -1,0 +1,58 @@
+version: '2.4'
+
+services:
+  storage:
+    image: openzipkin/zipkin-mysql
+    container_name: mysql
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    environment:
+      - STORAGE_TYPE=mysql
+      - MYSQL_HOST=mysql
+      - SCRIBE_ENABLED=true
+    ports:
+      - 9411:9411
+      - 9410:9410
+    depends_on:
+      - storage
+  api-gateway:
+    image: node:erbium-alpine
+    working_dir: /api-gateway
+    command: yarn start
+    ports:
+      - 3000:3000
+    volumes:
+      - type: bind
+        source: ./api-gateway
+        target: /api-gateway
+  subtract-service:
+    image: node:erbium-alpine
+    working_dir: /subtract-service
+    command: yarn start
+    ports:
+      - 2999:2999
+    volumes:
+      - type: bind
+        source: ./subtract-service
+        target: /subtract-service
+  add-service:
+    image: node:erbium-alpine
+    working_dir: /add-service
+    command: yarn start
+    ports:
+      - 3001:3001
+    volumes:
+      - type: bind
+        source: ./add-service
+        target: /add-service
+  web-ui:
+    image: node:erbium-alpine
+    working_dir: /web-ui
+    command: yarn start
+    ports:
+      - 8090:8090
+    volumes:
+      - type: bind
+        source: ./web-ui
+        target: /web-ui
